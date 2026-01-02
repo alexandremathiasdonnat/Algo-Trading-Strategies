@@ -46,6 +46,7 @@ MetaTrader 5 provides a practical and realistic environment for algorithmic trad
 
 It offers:
 - direct access to historical and live market data via broker connections (demo accounts are easy to obtain),
+- integrated IDE (.mq5 :  .cpp-like)
 - an integrated strategy tester for backtesting and parameter exploration,
 - a native execution model handling orders, positions, spreads, and symbol specifications,
 - a fast feedback loop: code → compile → backtest → iterate.
