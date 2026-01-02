@@ -77,11 +77,12 @@ This C++ version therefore acts as a research-oriented counterpart to the MT5 im
 ## 5) The dual implemented strategy: Moving Average Crossover
 
 ### Signal definition
-Let:
-- `MA_fast(t)` be the fast moving average of Close prices (e.g., 20)
-- `MA_slow(t)` be the slow moving average of Close prices (e.g., 50)
 
-A crossover is detected on **closed bars**:
+Let:
+- `MA_fast(t)` be the fast moving average of Close prices (e.g., 20-period)
+- `MA_slow(t)` be the slow moving average of Close prices (e.g., 50-period)
+
+A crossover is detected on closed bars:
 - **Bullish crossover**: `MA_fast` crosses from below to above `MA_slow`
 - **Bearish crossover**: `MA_fast` crosses from above to below `MA_slow`
 
@@ -91,30 +92,30 @@ The strategy is implemented as a finite-state trading system, with explicit sign
 
 #### Core state variables
 
-**position_state ∈ {FLAT, LONG, SHORT}**  
+`position_state ∈ {FLAT, LONG, SHORT}`  
 Current exposure of the strategy. At most one position can be active at any time.
 
-**MA_fast(t)**  
+`MA_fast(t)`  
 Fast moving average computed on close prices over a short rolling window.
 
-**MA_slow(t)**  
+`MA_slow(t)`  
 Slow moving average computed on close prices over a longer rolling window.
 
-**SL, TP (optional)**  
-Fixed stop-loss and take-profit levels attached at entry.
-The risk logic is identical in both implementations, while the parameterization unit differs:
-- in MQL5, SL/TP are expressed in points (platform-native convention),
-- in the standalone C++ program, SL/TP are expressed as percentages of the entry price.
+`SL`, `TP` (optional)  
+Fixed stop-loss and take-profit levels defined by the strategy at entry.  
+The underlying risk logic is identical in both implementations, while the parameterization unit differs:
+- in MQL5, `SL`/`TP` are expressed in points (platform-native convention) and attached directly to the order,
+- in the standalone C++ program, `SL`/`TP` are expressed as percentages of the entry price and evaluated in code.
 
 #### Signal definition
 
 A crossover event is detected on closed bars only:
 
-**Bullish crossover at time t if**  
-`MA_fast(t−1) ≤ MA_slow(t−1)` and `MA_fast(t) > MA_slow(t)`
+**Bullish crossover at time t** if:  
+`MA_fast(t−1) ≤ MA_slow(t−1)` **and** `MA_fast(t) > MA_slow(t)`
 
-**Bearish crossover at time t if**  
-`MA_fast(t−1) ≥ MA_slow(t−1)` and `MA_fast(t) < MA_slow(t)`
+**Bearish crossover at time t** if:  
+`MA_fast(t−1) ≥ MA_slow(t−1)` **and** `MA_fast(t) < MA_slow(t)`
 
 This formulation avoids intra-bar noise and ensures deterministic signal generation.
 
@@ -133,11 +134,22 @@ At no point can the system hold more than one active position.
 #### Risk management
 
 When enabled, each position is initialized with:
-- a fixed Stop-Loss (SL),
-- a fixed Take-Profit (TP).
+- a fixed Stop-Loss (`SL`),
+- a fixed Take-Profit (`TP`).
 
-Positions are closed immediately when either threshold is hit.
-Risk evaluation is performed independently of signal generation.
+In the standalone C++ implementation, `SL` and `TP` are not stored as persistent variables.  
+They are deterministically recomputed at each time step from the entry price `P₀`, the position direction `s ∈ {+1, −1}`, and fixed percentage parameters `α_SL`, `α_TP`:
+
+**Stop-Loss:**  
+`SL = P₀ · (1 − s · α_SL)`
+
+**Take-Profit:**  
+`TP = P₀ · (1 + s · α_TP)`
+
+where `s = +1` for a long position and `s = −1` for a short position.
+
+Positions are closed immediately when the current price crosses either threshold.  
+Risk evaluation is performed independently of crossover events.
 
 #### Implementation note
 
