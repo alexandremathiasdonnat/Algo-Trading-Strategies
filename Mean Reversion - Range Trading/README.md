@@ -1,22 +1,22 @@
-# Trend-Following / Momentum - Strategy Pack (MA Crossover)
+# Mean Reversion / Range Trading - Strategy Pack (Bollinger Bands Reversion)
 
-## 1) Strategy Family: Trend-Following / Momentum
+## 1) Strategy Family: Mean Reversion / Range Trading
 
 ### Core idea
-The alpha hypothesis is directional persistence: once a move starts, it has a non-zero probability of continuing.
-Trend-following strategies try to enter late but ride the trend, accepting many small losses in exchange for occasional large trend gains.
+*The alpha hypothesis is statistical mean reversion: after an excessive move away from a reference level, price has a non-zero probability of reverting back toward its mean.
+Mean-reversion strategies try to fade extremes, accepting that strong trends can produce sequences of losses, in exchange for frequent smaller reversions.*
 
 ### Main strategy archetypes in this family
-- **Moving Average Crossover**  
-  Enter when a fast moving average crosses a slow one, signaling a potential trend start.
-- **Channel / Donchian Breakout**  
-  Trade the breakout above/below a multi-period price channel.
-- **Time-Series Momentum**  
-  Go long if past returns are positive, short if negative (often with a fixed lookback).
-- **ADX / Momentum Filters**  
-  Only trade when trend strength (or momentum) exceeds a threshold, filtering sideways regimes.
+- **RSI Extremes**  
+  Sell overbought conditions and buy oversold conditions, assuming short-term reversion.
+- **Bollinger Bands Reversion**  
+  Trade the return toward the middle band after price closes outside the upper/lower band.
+- **Range Fade**  
+  Sell the top of a range and buy the bottom, expecting repeated oscillations.
+- **VWAP Reversion**  
+  Trade reversion of price toward a volume-weighted average reference.
 
-This folder implements one baseline representative strategy: **Moving Average Crossover**.
+This folder implements one baseline representative strategy: **Bollinger Bands Reversion**.
 
 ## 2) Two independent implementations
 
@@ -74,17 +74,19 @@ This choice is deliberate and meaningful:
 
 This C++ version therefore acts as a research-oriented counterpart to the MT5 implementation, and as a clean foundation for future extensions (e.g. custom backtesting engines, large-scale simulations, or real-data integration in separate projects).
 
-## 5) The dual implemented strategy: Moving Average Crossover
+## 5) The dual implemented strategy: Bollinger Bands Reversion
 
 ### Signal definition
 
 Let:
-- `MA_fast(t)` be the fast moving average of Close prices (e.g., 20-period)
-- `MA_slow(t)` be the slow moving average of Close prices (e.g., 50-period)
+- `BB_upper(t)`, `BB_middle(t)`, `BB_lower(t)` be Bollinger Bands computed on Close prices (period `N`, standard deviation multiplier `k`)
+- `P(t)` be the close price of the last closed bar
 
-A crossover is detected on closed bars:
-- **Bullish crossover**: `MA_fast` crosses from below to above `MA_slow`
-- **Bearish crossover**: `MA_fast` crosses from above to below `MA_slow`
+A mean-reversion entry signal is detected on **closed bars**:
+- **Overbought extreme (short setup)** if `P(t) > BB_upper(t)`
+- **Oversold extreme (long setup)** if `P(t) < BB_lower(t)`
+
+The strategy assumes that after an “excess” move outside the bands, price has a non-zero probability of reverting toward the **middle band**.
 
 ### Trading rules (identical logic in both implementations)
 
@@ -95,11 +97,11 @@ The strategy is implemented as a finite-state trading system, with explicit sign
 `position_state ∈ {FLAT, LONG, SHORT}`  
 Current exposure of the strategy. At most one position can be active at any time.
 
-`MA_fast(t)`  
-Fast moving average computed on close prices over a short rolling window.
+`BB_upper(t), BB_middle(t), BB_lower(t)`  
+Bollinger Bands computed on close prices over a rolling window.
 
-`MA_slow(t)`  
-Slow moving average computed on close prices over a longer rolling window.
+`P(t)`  
+Close price of the most recent closed bar (signal evaluated on closed candles only).
 
 `SL`, `TP` (optional)  
 Fixed stop-loss and take-profit levels defined by the strategy at entry.  
@@ -109,25 +111,25 @@ The underlying risk logic is identical in both implementations, while the parame
 
 #### Signal definition
 
-A crossover event is detected on closed bars only:
+A mean-reversion setup is detected on closed bars only:
 
-**Bullish crossover at time t** if:  
-`MA_fast(t−1) ≤ MA_slow(t−1)` **and** `MA_fast(t) > MA_slow(t)`
+**Short setup at time t** if:  
+`P(t) > BB_upper(t)`
 
-**Bearish crossover at time t** if:  
-`MA_fast(t−1) ≥ MA_slow(t−1)` **and** `MA_fast(t) < MA_slow(t)`
+**Long setup at time t** if:  
+`P(t) < BB_lower(t)`
 
 This formulation avoids intra-bar noise and ensures deterministic signal generation.
 
 #### State transition logic
 
-**On a bullish crossover:**
-- if `position_state == SHORT` → close the short position
-- if `position_state == FLAT` → open a long position
-
-**On a bearish crossover:**
+**On a short setup:**
 - if `position_state == LONG` → close the long position
 - if `position_state == FLAT` → open a short position
+
+**On a long setup:**
+- if `position_state == SHORT` → close the short position
+- if `position_state == FLAT` → open a long position
 
 At no point can the system hold more than one active position.
 
@@ -149,7 +151,7 @@ They are deterministically recomputed at each time step from the entry price `P�
 where `s = +1` for a long position and `s = −1` for a short position.
 
 Positions are closed immediately when the current price crosses either threshold.  
-Risk evaluation is performed independently of crossover events.
+Risk evaluation is performed independently of the entry signal.
 
 #### Implementation note
 
@@ -161,8 +163,8 @@ The strategy logic is strictly event-driven:
 This section describes the exact same logical structure implemented in both the MQL5 Expert Advisor and the standalone C++ program, despite differences in language syntax and execution environment.
 
 ## 6) Files
-- `MA_Crossover.mq5`: MT5 Expert Advisor (market data + strategy tester)
-- `MA_Crossover.cpp`: standalone C++ program (synthetic data, same logic, full run)
+- `BB_Reversion.mq5`: MT5 Expert Advisor (market data + strategy tester)
+- `BB_Reversion.cpp`: standalone C++ program (synthetic data, same logic, full run)
 
 ## 7) General Disclaimer 
 
@@ -191,4 +193,4 @@ Here, I deliberately focus on isolating and implementing one clear alpha compone
 
 ---
 
-***Alexandre Mathias DONANT, Sr***
+***Alexandre Mathias DONNAT, Sr***
