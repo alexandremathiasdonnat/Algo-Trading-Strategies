@@ -1,7 +1,7 @@
 //+------------------------------------------------------------------+
 //|                                                   MA_Crossover.mq5|
 //|            Trend-Following / Momentum — Moving Average Crossover  |
-//|                  Alexandre Mathias DONNAT - Independent strategy) |
+//|                  Alexandre Mathias DONNAT - Independent strategy  |
 //+------------------------------------------------------------------+
 #property strict
 #property version "1.00"

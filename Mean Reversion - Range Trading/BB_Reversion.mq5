@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                                   BB_Reversion.mq5|
-//|                    Mean Reversion / Range Trading (Proof-of-Work) |
+//|                                    Mean Reversion / Range Trading |
 //|                    Alexandre Mathias DONNAT - Independent Strategy|
 //+------------------------------------------------------------------+
 #property strict
