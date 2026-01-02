@@ -1,10 +1,10 @@
-# Trend-Following / Momentum — Strategy Pack (MA Crossover)
+# Trend-Following / Momentum - Strategy Pack (MA Crossover)
 
-## 1) Family: Trend-Following / Momentum
+## 1) Strategy Family: Trend-Following / Momentum
 
 ### Core idea
-The alpha hypothesis is **directional persistence**: once a move starts, it has a non-zero probability of continuing.
-Trend-following strategies try to **enter late but ride the trend**, accepting many small losses in exchange for occasional large trend gains.
+The alpha hypothesis is directional persistence: once a move starts, it has a non-zero probability of continuing.
+Trend-following strategies try to enter late but ride the trend, accepting many small losses in exchange for occasional large trend gains.
 
 ### Main strategy archetypes in this family
 - **Moving Average Crossover**  
@@ -16,57 +16,64 @@ Trend-following strategies try to **enter late but ride the trend**, accepting m
 - **ADX / Momentum Filters**  
   Only trade when trend strength (or momentum) exceeds a threshold, filtering sideways regimes.
 
-This folder implements **one baseline representative strategy**: **Moving Average Crossover**.
+This folder implements one baseline representative strategy: **Moving Average Crossover**.
 
----
+## 2) Two independent implementations
 
-## 2) Why two independent implementations?
+This repository is designed as a proof-of-work in algorithmic trading, showcasing how the same trading idea can be implemented coherently in two different programming environments, each serving a distinct purpose.
 
-This repository is a **proof-of-work** exercise:
-- demonstrate that I can implement the *same trading logic* in **two different languages**
-- keep the implementations **fully independent** (no bridge, no shared data pipeline)
+The two implementations share the same algorithmic logic, but are intentionally kept fully independent:
 
-### ✅ What this is
-- A demonstration of **clean strategy abstraction**
-- A demonstration of **algorithmic consistency across languages**
-- A practical way to build intuition on execution details, state management, and risk logic
+- no bridge between MQL5 and C++
+- no shared datasets or execution pipeline
+- no attempt to simulate a production architecture
 
-### ❌ What this is NOT
-- Not a production trading architecture
-- Not a live execution system
-- Not a claim that this strategy is profitable as-is
+The objective is not redundancy, but conceptual clarity: demonstrating that the strategy can be expressed, reasoned about, and executed consistently across languages.
 
----
+**What this is:**
+- A demonstration of clean abstraction of a trading strategy
+- A way to reason explicitly about signals, state transitions, and risk handling
+- A controlled setting to compare how the same logic maps to different tools
 
-## 3) Why MT5 / MQL5 for the first implementation?
+**What this is NOT:**
+- Not a production trading system
+- Not a unified research or execution framework
+- Not a claim of profitability or any form of investment advice
 
-MetaTrader 5 is a practical sandbox for retail quant experimentation:
-- built-in access to **market data** through the broker environment (demo accounts are easy to obtain)
-- native **strategy tester** for quick iterations
-- integrated execution model (orders, positions, symbol properties, spreads, etc.)
-- fast feedback loop: code → compile → backtest → iterate
+## 3) MQL5 / .mq5 implementation
 
-So the `.mq5` version is the most direct way to test the strategy on real historical market conditions (within MT5’s limits).
+MetaTrader 5 provides a practical and realistic environment for algorithmic trading experimentation.
 
----
+It offers:
+- direct access to historical and live market data via broker connections (demo accounts are easy to obtain),
+- an integrated strategy tester for backtesting and parameter exploration,
+- a native execution model handling orders, positions, spreads, and symbol specifications,
+- a fast feedback loop: code → compile → backtest → iterate.
 
-## 4) Why a standalone C++ implementation?
+In this project, the .mq5 implementation serves as the most direct way to test the strategy logic under real market conditions, within the constraints and assumptions of the MT5 ecosystem.
 
-A standalone C++ program forces me to re-implement the strategy logic **from first principles**:
-- signals and state transitions (flat → long/short → flip)
-- risk logic (SL/TP)
-- trade bookkeeping and performance reporting
+## 4) Standalone C++ implementation
 
-Because this project has strict constraints (no CSV / no external feed / no networking), the C++ version runs on an **internally generated synthetic price series** (GBM-like random walk).  
+The C++ implementation has a different objective.
 
-This is deliberate:
-- it keeps the code 100% autonomous
-- it demonstrates the full end-to-end logic without relying on external data plumbing
-- it sets up a clean base for later projects where I may plug real data properly (actions/FX/crypto datasets, custom backtest engine, etc.)
+Rather than replacing MetaTrader or acting as a live trading system, it forces a re-implementation of the strategy from first principles, outside of any broker-provided environment:
 
----
+- explicit signal computation,
+- explicit position state management (flat → long / short → flip),
+- explicit risk logic (stop-loss / take-profit),
+- explicit trade tracking and performance aggregation.
 
-## 5) Implemented strategy: Moving Average Crossover (baseline)
+Because this is a standalone program with no dependency on broker infrastructure, the strategy is executed on an internally generated synthetic price series (GBM-like random walk).
+
+This choice is deliberate and meaningful:
+- it keeps the code fully autonomous and self-contained,
+- it avoids hiding logic behind platform-specific abstractions,
+- it highlights the core mechanics of the strategy rather than data plumbing,
+- it mirrors how quantitative research often starts with simplified or simulated environments before scaling to real datasets.
+
+This C++ version therefore acts as a research-oriented counterpart to the MT5 implementation, and as a clean foundation for future extensions (e.g. custom backtesting engines, large-scale simulations, or real-data integration in separate projects).
+
+## 5) The dual implemented strategy: Moving Average Crossover
 
 ### Signal definition
 Let:
@@ -77,23 +84,94 @@ A crossover is detected on **closed bars**:
 - **Bullish crossover**: `MA_fast` crosses from below to above `MA_slow`
 - **Bearish crossover**: `MA_fast` crosses from above to below `MA_slow`
 
-### Trading rules (same in both codes)
-- If bullish crossover:
-  - if currently short → close short
-  - if flat → open long
-- If bearish crossover:
-  - if currently long → close long
-  - if flat → open short
-- At most **one position at a time**
-- Optional fixed **Stop-Loss / Take-Profit**
+### Trading rules (identical logic in both implementations)
 
-### Implementation notes
-- The signal is computed using **closed candles** to avoid intra-bar noise and repainting.
-- The logic is intentionally minimal: this is a baseline trend-following template,
-  meant to be extended later with regime filters, cost modeling, and robustness tests.
+The strategy is implemented as a finite-state trading system, with explicit signal evaluation and position state management.
 
----
+#### Core state variables
 
-## Files
-- `MA_Crossover.mq5` : MT5 Expert Advisor (market data + strategy tester)
-- `MA_Crossover.cpp` : standalone C++ program (synthetic data, same logic, full run)
+**position_state ∈ {FLAT, LONG, SHORT}**  
+Current exposure of the strategy. At most one position can be active at any time.
+
+**MA_fast(t)**  
+Fast moving average computed on close prices over a short rolling window.
+
+**MA_slow(t)**  
+Slow moving average computed on close prices over a longer rolling window.
+
+**SL, TP (optional)**  
+Fixed stop-loss and take-profit levels attached at entry.
+The risk logic is identical in both implementations, while the parameterization unit differs:
+- in MQL5, SL/TP are expressed in points (platform-native convention),
+- in the standalone C++ program, SL/TP are expressed as percentages of the entry price.
+
+#### Signal definition
+
+A crossover event is detected on closed bars only:
+
+**Bullish crossover at time t if**  
+`MA_fast(t−1) ≤ MA_slow(t−1)` and `MA_fast(t) > MA_slow(t)`
+
+**Bearish crossover at time t if**  
+`MA_fast(t−1) ≥ MA_slow(t−1)` and `MA_fast(t) < MA_slow(t)`
+
+This formulation avoids intra-bar noise and ensures deterministic signal generation.
+
+#### State transition logic
+
+**On a bullish crossover:**
+- if `position_state == SHORT` → close the short position
+- if `position_state == FLAT` → open a long position
+
+**On a bearish crossover:**
+- if `position_state == LONG` → close the long position
+- if `position_state == FLAT` → open a short position
+
+At no point can the system hold more than one active position.
+
+#### Risk management
+
+When enabled, each position is initialized with:
+- a fixed Stop-Loss (SL),
+- a fixed Take-Profit (TP).
+
+Positions are closed immediately when either threshold is hit.
+Risk evaluation is performed independently of signal generation.
+
+#### Implementation note
+
+The strategy logic is strictly event-driven:
+- signals are evaluated once per closed bar,
+- position state transitions are explicit and deterministic,
+- no parameter optimization, regime filtering, or portfolio-level logic is applied at this stage.
+
+This section describes the exact same logical structure implemented in both the MQL5 Expert Advisor and the standalone C++ program, despite differences in language syntax and execution environment.
+
+## 6) Files
+- `MA_Crossover.mq5`: MT5 Expert Advisor (market data + strategy tester)
+- `MA_Crossover.cpp`: standalone C++ program (synthetic data, same logic, full run)
+
+## 7) General Disclaimer 
+
+A real consistent algorithmic trading strategy =
+
+**Signal** (clear alpha source from a strategy family)  
+\+ **Regime filter** (when the signal should be active)  
+\+ **Timing** (how and when to enter / exit)  
+\+ **Risk management** (position sizing, stops, drawdown control)
+
+Many retail strategies fail because they:
+- underestimate the impact of continuous macroeconomic news flows (especially in FX),
+- mix indicators without a clear economic or statistical hypothesis,
+- stack ad-hoc rules,
+- endlessly tweak entries,
+- without ever isolating where the alpha actually comes from.
+- fail to properly account for key parameters such as transaction costs, spreads, and slippage.
+
+This repository focuses on the design and implementation of trading strategies, rather than on ranking them by performance.
+The work presented here operates at the level of mechanical / logical backtesting:
+each strategy is tested in isolation to verify that it generates coherent signals, respects its trading rules, manages position states correctly (flat / long / short), and applies risk constraints (SL / TP) without logical errors, lookahead bias, or non-deterministic behavior.
+
+Higher-level analyses, such as performance comparison, parameter optimization, and portfolio-level backtesting, require dedicated research frameworks, realistic cost modeling, and strict evaluation protocols, and are therefore intentionally outside the scope of this repository.
+
+Here, I deliberately focus on isolating and implementing one clear alpha component at a time.
