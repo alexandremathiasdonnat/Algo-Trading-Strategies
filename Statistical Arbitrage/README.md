@@ -10,7 +10,7 @@
 
 ### Main strategy archetypes in this family
 - **Pairs Trading (cointegration / spread mean-reversion)**  
-  Trade deviations of a stationary spread around its equilibrium.
+  Trade deviations of a stationary spread around its equilibrium (Classical example is Coca Cola Equity vs Pepsi Equity)
 - **Cross-sectional mean reversion**  
   Long the underperformers and short the outperformers within a universe.
 - **Basket / factor-neutral statarb**  
@@ -22,7 +22,7 @@ This folder implements one baseline representative strategy: **Pairs Trading (ro
 
 ## 2) Two independent components
 
-This folder follows the same proof-of-work philosophy: simple, autonomous, and mechanically correct implementations.
+This folder follows my usual reasearch / exploration philosophy: simple, autonomous, and mechanically correct implementations.
 
 It is split into:
 - a **synthetic generator** producing a controlled cointegrated pair,
