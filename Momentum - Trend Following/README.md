@@ -3,8 +3,8 @@
 ## 1) Strategy Family: Trend-Following / Momentum
 
 ### Core idea
-The alpha hypothesis is directional persistence: once a move starts, it has a non-zero probability of continuing.
-Trend-following strategies try to enter late but ride the trend, accepting many small losses in exchange for occasional large trend gains.
+*The alpha hypothesis is directional persistence: once a move starts, it has a non-zero probability of continuing.*
+*Trend-following strategies try to enter late but ride the trend, accepting many small losses in exchange for occasional large trend gains.*
 
 ### Main strategy archetypes in this family
 - **Moving Average Crossover**  
