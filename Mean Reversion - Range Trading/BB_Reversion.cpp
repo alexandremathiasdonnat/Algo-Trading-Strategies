@@ -141,7 +141,7 @@ int main() {
             }
         }
 
-        // (Optional) You could add a signal-based exit (e.g., close at mid band),
+        // We could add a signal-based exit (e.g., close at mid band),
         // but we keep it minimal: exits are driven by SL/TP only in this baseline.
     }
 

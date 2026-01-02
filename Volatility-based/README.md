@@ -20,7 +20,7 @@ This folder implements one baseline representative strategy: **ATR Expansion Bre
 
 ## 2) Two independent implementations
 
-This repository is designed as a proof-of-work in algorithmic trading, showcasing how the same trading idea can be implemented coherently in two different programming environments, each serving a distinct purpose.
+This repository is designed as an example in algorithmic trading, showcasing how the same trading idea can be implemented coherently in two different programming environments, each serving a distinct purpose.
 
 The two implementations share the same algorithmic logic, but are intentionally kept fully independent:
 
