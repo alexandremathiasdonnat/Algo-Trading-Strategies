@@ -12,7 +12,7 @@ Some components focus on signal formation and market structure, others on regime
 The same ideas are expressed across different environments: high-level experimentation and market interaction through MQL5,  
 and low-level, fully controlled simulations through standalone C++ programs.
 
-C++ is used to make assumptions explicit, to control state, time, and randomness, and to study how strategies behave under repeated computation.   MQL5 is used to connect algorithmic logic to realistic market conditions, data availability, and execution models.
+C++ is used to make assumptions explicit, to control state, time, and randomness, and to study how strategies behave under repeated computation. MQL5 is used to connect algorithmic logic to realistic market conditions, data availability, and execution models.
 
 Together, these implementations form a coherent horizon:
 from abstract hypotheses to concrete algorithms,
